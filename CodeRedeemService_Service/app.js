@@ -80,19 +80,22 @@ app.get('/code/getgeneratecode/', async(req,res) => {
 app.post('/code/redeeming/:code', async(req,res) => {
     const inputcode = req.params.code; //if use params
     // const inputcode = req.body.code; //if use body
-    const userId = req.body.userId; //สำหรับไปทำส่วนของ Service subscription ?
+    const userId = req.body.userId; //สำหรับไปทำส่วนของ Service subscription
     const client = new MongoClient(uri);
     await client.connect()
     const code = await client.db("SOA").collection("code").findOneAndDelete({"code" : inputcode });
+    await client.close();
+    console.log(Date.parse(code.expired_date) < Date.now());
     if(code){
         console.log(code);
-        await client.close();
         //ทำการได้สถานะ membership
         res.status(200).send(true)
     }
+    else if(Date.parse(code.expired_date) < Date.now()){
+        res.status(400).send(false);
+    }
     else{
         console.log("not found");
-        await client.close();
         res.status(400).send(false);
     }
 })
