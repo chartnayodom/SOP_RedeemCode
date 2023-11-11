@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
+const http = require('http');
 const app = express();
 const uri = "mongodb://127.0.0.1:27017"; //แนะนำเป็น ipv4 ดีกว่า
 
@@ -26,6 +27,7 @@ d.setDate(d.getDate() + 365);
 
 //RestController
 //ยังรองรับส่ง Request แบบ Raw Json กับ Route parameter เท่านั้นนะจั๊ฟ
+
 //generate code
 app.post('/code/generate', async(req,res) =>{
     const user = req.body.channelId; //id ของศิลปิน
@@ -60,7 +62,7 @@ app.post('/code/generate', async(req,res) =>{
     res.status(200).send({
         "status": "ok",
         "message": "created",
-        "expired_date": d.toString
+        // "expired_date": d.toString
     })
 })
 
@@ -77,33 +79,79 @@ app.get('/code/getgeneratecode/', async(req,res) => {
 
 //hostname:8080/code/redeeming/{โค้ด}
 //redeeming
-app.post('/code/redeeming/:code', async(req,res) => {
-    const inputcode = req.params.code; //if use params
-    // const inputcode = req.body.code; //if use body
+app.post('/code/redeeming/', async(req,res) => {
+    // const inputcode = req.params.code; //if use params
+    console.log(req.body)
+    const inputcode = req.body.code; //if use body
     const userId = req.body.userId; //สำหรับไปทำส่วนของ Service subscription
     const client = new MongoClient(uri);
     await client.connect()
     const code = await client.db("SOA").collection("code").findOneAndDelete({"code" : inputcode });
     await client.close();
     console.log(Date.parse(code.expired_date) < Date.now());
-    if(code){
+    if(code != null){
         console.log(code);
-        //ทำการได้สถานะ membership
+        if(Date.parse(code.expired_date) < Date.now() && code.expired_date !== null){
+            res.status(400).send(false);
+        }
+        //ทำการได้สถานะ membership โดยการยิงไปService Membership
+        const resp = await fetch("http://localhost:8082/membership-service/subscription/redeemCode",{
+            method: "POST",
+            body: JSON.stringify({
+                userId: userId, //userid
+                channelId: code.artist, //artistid
+                code: code.code,
+                subscribed: true
+                
+            }),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8"
+            }
+        })
+        console.log(resp.statusText)
         res.status(200).send(true)
     }
-    else if(Date.parse(code.expired_date) < Date.now()){
-        res.status(400).send(false);
-    }
+    // else if(Date.parse(code.expired_date) < Date.now()){
+    //     res.status(400).send(false);
+    // }
     else{
         console.log("not found");
         res.status(400).send(false);
     }
+
+    // var options = {
+    //     host: '',
+    //     port: 80,
+    //     path: '/',
+    //     method: 'POST',
+    //     body: JSON.stringify({
+            
+    //     }),
+    //     headers: {
+    //         "Content-type": "application/json; charset=UTF-8"
+    //     }
+    // }
+
+    // var httpreq = http.request(options, function(response){
+    //     response.setEncoding('utf-8');
+    //     response.on('data')
+    // })
+
+    
 })
+
+// app.get("/code/test", async(req,res) => {
+//     const client = new MongoClient(uri);
+//     const code = await client.db("SOA").collection("code").findOne({"_id": new ObjectId('654e80205810df07abba0487')});
+//     client.close()
+//     console.log(code)
+//     res.status(200).send(code)
+// })
 
 
 //เดี๋ยวหาวิธีauto port มา
-const port = 8080;
-app.listen(8080, () => {
-    console.log("Code Service Run in port:" + port);
+// const port = Math.random()
+app.listen(8888, () => {
+    console.log("Code Service Run in port:" + 8888);
     // console.log('server start');
 })
