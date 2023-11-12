@@ -1,4 +1,14 @@
 # SOP_RedeemCode
+Before run service<br>
+Get into "CodeRedeemService_Service" Directory<br>
+Run command:<br>
+npm install<br>
+npm install -g nodemon<br>
+<br>
+After install<br>
+type "nodemon app.js" <br>
+<br>
+
 This service provide 3 function<br>
 
 Generate Code <br>
