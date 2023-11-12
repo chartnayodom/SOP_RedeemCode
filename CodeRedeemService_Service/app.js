@@ -4,11 +4,18 @@ const bodyParser = require('body-parser')
 const multer = require('multer')
 const { MongoClient, ObjectId } = require('mongodb');
 const app = express();
+const upload = multer();
 const { db_uri, db_name, db_collection } = require('./config');
+
+
 
 app.use(cors())
 app.use(express.json());
 app.use(bodyParser.urlencoded({extended: true}))
+app.use(upload.array()); 
+app.use(express.static('public'));
+app.use(bodyParser.json()); 
+
 
 //other function
 //codegenerator
