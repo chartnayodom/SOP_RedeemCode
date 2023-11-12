@@ -1,11 +1,14 @@
 const express = require('express');
 const cors = require('cors');
+const bodyParser = require('body-parser')
+const multer = require('multer')
 const { MongoClient, ObjectId } = require('mongodb');
 const app = express();
 const { db_uri, db_name, db_collection } = require('./config');
 
 app.use(cors())
 app.use(express.json());
+app.use(bodyParser.urlencoded({extended: true}))
 
 //other function
 //codegenerator
@@ -49,7 +52,7 @@ app.post('/code/generate', async(req,res) =>{
 
     try {
         result = await client.db(db_name).collection(db_collection).insertMany(gencodes)
-        console.log(result)
+        // console.log(result)
      } catch (e) {
         print (e);
      }
