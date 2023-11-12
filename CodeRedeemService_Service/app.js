@@ -89,7 +89,8 @@ app.post('/code/redeeming/', async(req,res) => {
     let code = null
     code = await client.db("SOA").collection("code").findOneAndDelete({"code" : inputcode });
     await client.close();
-    console.log(Date.parse(code.expired_date) < Date.now());
+    console.log(code)
+    // console.log(Date.parse(code.expired_date) < Date.now());
     if(code != null){
         console.log(code);
         if(Date.parse(code.expired_date) < Date.now() && code.expired_date !== null){
