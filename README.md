@@ -12,6 +12,7 @@ type "nodemon app.js" <br>
 
 
 This service provide 3 functions<br>
+Support Form-data, x-www-form-urlencoded, raw json<br>
 
 Generate Code <br>
 Path: {hostname}:{port}/code/generate <br>
