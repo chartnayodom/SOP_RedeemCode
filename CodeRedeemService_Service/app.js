@@ -32,6 +32,7 @@ app.post('/code/generate', async(req,res) =>{
     const user = req.body.channelId; //id ของศิลปิน
     const count = req.body.count; // จำนวนโค้ดที่ต้องการ Generate
     const client = new MongoClient(db_uri);
+    let result = null
 
     const gencodes = [];
     for(let i = 0; i < count; i++){
@@ -42,11 +43,13 @@ app.post('/code/generate', async(req,res) =>{
             artist: user, //user ที่ทำการขอGen
         })
     }
-    console.log(gencodes)
+    // console.log(gencodes)
     await client.connect();
+    // let result = null
 
     try {
-        client.db(db_name).collection(db_collection).insertMany(gencodes)
+        result = await client.db(db_name).collection(db_collection).insertMany(gencodes)
+        console.log(result)
      } catch (e) {
         print (e);
      }
@@ -54,6 +57,7 @@ app.post('/code/generate', async(req,res) =>{
     res.status(200).send({
         "status": "ok",
         "message": "created",
+        "result": result
         // "expired_date": d.toString
     })
 })
