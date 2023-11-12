@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ObjectId } = require('mongodb');
-const http = require('http');
+// const http = require('http');
 const app = express();
 const uri = "mongodb://127.0.0.1:27017"; //แนะนำเป็น ipv4 ดีกว่า
 
@@ -86,13 +86,16 @@ app.post('/code/redeeming/', async(req,res) => {
     const userId = req.body.userId; //สำหรับไปทำส่วนของ Service subscription
     const client = new MongoClient(uri);
     await client.connect()
-    const code = await client.db("SOA").collection("code").findOneAndDelete({"code" : inputcode });
+    let code = null
+    code = await client.db("SOA").collection("code").findOneAndDelete({"code" : inputcode });
     await client.close();
     console.log(Date.parse(code.expired_date) < Date.now());
     if(code != null){
         console.log(code);
         if(Date.parse(code.expired_date) < Date.now() && code.expired_date !== null){
-            res.status(400).send(false);
+            res.status(400).send({
+                result: false, message: "โค้ดนี้หมดอายุแล้ว"
+            });
         }
         //ทำการได้สถานะ membership โดยการยิงไปService Membership
         const resp = await fetch("http://localhost:8082/membership-service/subscription/redeemCode",{
@@ -109,14 +112,18 @@ app.post('/code/redeeming/', async(req,res) => {
             }
         })
         console.log(resp.statusText)
-        res.status(200).send(true)
+        res.status(200).send({
+            result : true, message: "คุณทำการแลกรางวัลสำเร็จแล้ว"
+        })
     }
     // else if(Date.parse(code.expired_date) < Date.now()){
     //     res.status(400).send(false);
     // }
     else{
         console.log("not found");
-        res.status(400).send(false);
+        res.status(400).send({
+            result: false, message: "ไม่พบโค้ดนี้ หรือ โค้ดถูกใช้งานไปแล้ว"
+        });
     }
 
     // var options = {
@@ -140,13 +147,14 @@ app.post('/code/redeeming/', async(req,res) => {
     
 })
 
-// app.get("/code/test", async(req,res) => {
-//     const client = new MongoClient(uri);
-//     const code = await client.db("SOA").collection("code").findOne({"_id": new ObjectId('654e80205810df07abba0487')});
-//     client.close()
-//     console.log(code)
-//     res.status(200).send(code)
-// })
+app.get("/code/test", async(req,res) => {
+    const client = new MongoClient(uri);
+    let code = null
+    code = await client.db("SOA").collection("code").findOne({"_id": new ObjectId('655079b3e3147af7fafe4d5f')});
+    client.close()
+    console.log(code)
+    res.status(200).send({text: "nice!"})
+})
 
 
 //เดี๋ยวหาวิธีauto port มา
