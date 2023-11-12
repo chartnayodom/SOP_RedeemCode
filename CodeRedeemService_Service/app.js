@@ -8,7 +8,6 @@ const upload = multer();
 const { db_uri, db_name, db_collection } = require('./config');
 
 
-
 app.use(cors())
 app.use(express.json());
 app.use(bodyParser.urlencoded({extended: true}))
@@ -30,6 +29,7 @@ function generateCode(){
     return redeemcode
 }
 
+//สำหรับตรวจสอบและลงเวลาหมดอายุ
 const d = new Date();
 d.setDate(d.getDate() + 365);
 
@@ -53,9 +53,7 @@ app.post('/code/generate', async(req,res) =>{
             artist: user, //user ที่ทำการขอGen
         })
     }
-    // console.log(gencodes)
     await client.connect();
-    // let result = null
 
     try {
         result = await client.db(db_name).collection(db_collection).insertMany(gencodes)
@@ -68,7 +66,6 @@ app.post('/code/generate', async(req,res) =>{
         "status": "ok",
         "message": "created",
         "result": result
-        // "expired_date": d.toString
     })
 })
 
@@ -86,7 +83,6 @@ app.get('/code/getgeneratecode/', async(req,res) => {
 
 //redeeming
 app.post('/code/redeeming/', async(req,res) => {
-    console.log(req.body)
     const inputcode = req.body.code; //if use body
     const userId = req.body.userId; //สำหรับไปทำส่วนของ Service subscription
     const client = new MongoClient(db_uri);
@@ -94,9 +90,8 @@ app.post('/code/redeeming/', async(req,res) => {
     let code = null
     code = await client.db(db_name).collection(db_collection).findOneAndDelete({"code" : inputcode });
     await client.close();
-    console.log(code)
     if(code != null){
-        console.log(code);
+        //check วันหมดอายุ
         if(Date.parse(code.expired_date) < Date.now() && code.expired_date !== null){
             res.status(400).send({
                 result: false, message: "โค้ดนี้หมดอายุแล้ว"
@@ -131,19 +126,8 @@ app.post('/code/redeeming/', async(req,res) => {
     
 })
 
-// app.get("/code/test", async(req,res) => {
-//     const client = new MongoClient(db_uri);
-//     let code = null
-//     code = await client.db(db_name).collection(db_collection).findOne({"_id": new ObjectId('655079b3e3147af7fafe4d5f')});
-//     client.close()
-//     console.log(code)
-//     res.status(200).send({text: "nice!"})
-// })
-
 
 
 app.listen(8888, () => {
     console.log("Code Service Run in port:" + 8888);
-    // console.log(db_name, db_collection, db_uri)
-    // console.log('server start');
 })
