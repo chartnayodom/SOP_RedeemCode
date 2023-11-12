@@ -52,5 +52,5 @@ Path: {hostname}:{port}/code/redeeming/<br>
 Use Request body (RAW JSON){
   code: "code",
   userId: "userid"
-}
+}<br>
 Return { result: true (or false), message: "message"} <br>
