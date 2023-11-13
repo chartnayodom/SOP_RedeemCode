@@ -60,6 +60,7 @@ app.post('/code/generate', async(req,res) =>{
         // console.log(result)
      } catch (e) {
         print (e);
+        res.status(500).send(e);
      }
 
     res.status(200).send({
@@ -93,7 +94,7 @@ app.post('/code/redeeming/', async(req,res) => {
     if(code != null){
         //check วันหมดอายุ
         if(Date.parse(code.expired_date) < Date.now() && code.expired_date !== null){
-            res.status(400).send({
+            res.status(404).send({
                 result: false, message: "โค้ดนี้หมดอายุแล้ว"
             });
         }
@@ -118,15 +119,11 @@ app.post('/code/redeeming/', async(req,res) => {
     }
     else{
         console.log("not found");
-        res.status(400).send({
+        res.status(404).send({
             result: false, message: "ไม่พบโค้ดนี้ หรือ โค้ดถูกใช้งานไปแล้ว"
         });
     }
-
-    
 })
-
-
 
 app.listen(8888, () => {
     console.log("Code Service Run in port:" + 8888);
